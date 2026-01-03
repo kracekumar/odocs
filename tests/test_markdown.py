@@ -112,7 +112,9 @@ class TestGenerateSections:
     def test_heading_level_cap(self, generator: MarkdownGenerator) -> None:
         """Test that heading levels are capped at 6."""
         # Create deeply nested command
-        cmd = CommandHelp(name="deep", full_command=["deep"], help_output="help")
+        cmd = CommandHelp(
+            name="deep", full_command=["deep"], help_output="help"
+        )
         for i in range(10):
             cmd = CommandHelp(
                 name=f"l{i}",

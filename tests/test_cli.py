@@ -54,7 +54,9 @@ class TestCLI:
     def test_timeout_option(self, runner: CliRunner, tmp_path) -> None:
         """Test --timeout option."""
         output_file = tmp_path / "test-help.md"
-        result = runner.invoke(app, ["echo", "-o", str(output_file), "-t", "10"])
+        result = runner.invoke(
+            app, ["echo", "-o", str(output_file), "-t", "10"]
+        )
         assert result.exit_code == 0
 
 
@@ -67,7 +69,8 @@ class TestIntegration:
         return CliRunner()
 
     @pytest.mark.skipif(
-        subprocess.run(["which", "python"], capture_output=True).returncode != 0,
+        subprocess.run(["which", "python"], capture_output=True).returncode
+        != 0,
         reason="python not available",
     )
     def test_python_help(self, runner: CliRunner, tmp_path) -> None:

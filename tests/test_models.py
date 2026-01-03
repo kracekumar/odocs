@@ -67,7 +67,9 @@ class TestCountAll:
         # root + sub + leaf1 + leaf2 = 4
         assert nested_command.count_all() == 4
 
-    def test_deeply_nested_commands(self, deeply_nested_command: CommandHelp) -> None:
+    def test_deeply_nested_commands(
+        self, deeply_nested_command: CommandHelp
+    ) -> None:
         """Test counting deeply nested commands."""
         # root + 5 levels = 6
         assert deeply_nested_command.count_all() == 6

@@ -18,3 +18,9 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/odocs"]
+
+[tool.ruff]
+line-length = 80
+
+[tool.ruff.format]
+docstring-code-format = true

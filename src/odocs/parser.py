@@ -7,7 +7,9 @@ class HelpParser:
     """Parses command help output to extract subcommands."""
 
     # Words that commonly appear in help text but aren't commands
-    SKIP_WORDS = frozenset({"use", "see", "for", "the", "and", "options", "usage"})
+    SKIP_WORDS = frozenset(
+        {"use", "see", "for", "the", "and", "options", "usage"}
+    )
 
     # Patterns that indicate start of commands section
     COMMANDS_SECTION_PATTERN = re.compile(

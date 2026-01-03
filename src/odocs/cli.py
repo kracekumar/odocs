@@ -8,7 +8,9 @@ from .discovery import CommandDiscovery
 from .markdown import MarkdownGenerator, get_output_path
 from .runner import CommandRunner
 
-app = typer.Typer(help="Capture command --help output recursively and save as markdown.")
+app = typer.Typer(
+    help="Capture command --help output recursively and save as markdown."
+)
 
 
 @app.command()
