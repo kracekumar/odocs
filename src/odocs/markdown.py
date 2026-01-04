@@ -3,7 +3,7 @@
 from datetime import datetime
 from pathlib import Path
 
-from .models import CommandHelp
+from odocs.models import CommandHelp
 
 
 class MarkdownGenerator:

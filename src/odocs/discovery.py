@@ -2,9 +2,9 @@
 
 from typing import Callable
 
-from .models import CommandHelp
-from .parser import HelpParser
-from .runner import CommandRunner
+from odocs.models import CommandHelp
+from odocs.parser import HelpParser
+from odocs.runner import CommandRunner
 
 
 class CommandDiscovery:

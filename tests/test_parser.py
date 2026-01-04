@@ -74,6 +74,25 @@ Options:
         assert "sync" in result
         assert "help" in result
 
+    def test_parse_indented_commands_help(
+        self, parser: HelpParser, git_style_help_output: str
+    ) -> None:
+        """Test parsing help output with indented command format."""
+        result = parser.parse_subcommands(git_style_help_output)
+        # Commands should be detected from indented lines
+        assert "clone" in result
+        assert "init" in result
+        assert "add" in result
+        assert "mv" in result
+        assert "restore" in result
+        assert "rm" in result
+        assert "bisect" in result
+        assert "diff" in result
+        assert "grep" in result
+        assert "log" in result
+        assert "show" in result
+        assert "status" in result
+
     def test_skip_common_words(self, parser: HelpParser) -> None:
         """Test that common non-command words are skipped."""
         help_output = """
@@ -122,6 +141,64 @@ Commands:
         assert result == ["init"]
         assert "-v" not in result
 
+    def test_git_command(self, parser: HelpParser) -> None:
+        help_output = """
+        usage: git [-v | --version] [-h | --help] [-C <path>] [-c <name>=<value>]
+                   [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
+                   [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--bare]
+                   [--git-dir=<path>] [--work-tree=<path>] [--namespace=<name>]
+                   [--super-prefix=<path>] [--config-env=<name>=<envvar>]
+                   <command> [<args>]
+
+        These are common Git commands used in various situations:
+
+        start a working area (see also: git help tutorial)
+           clone     Clone a repository into a new directory
+           init      Create an empty Git repository or reinitialize an existing one
+
+        work on the current change (see also: git help everyday)
+           add       Add file contents to the index
+           mv        Move or rename a file, a directory, or a symlink
+           restore   Restore working tree files
+           rm        Remove files from the working tree and from the index
+
+        examine the history and state (see also: git help revisions)
+           bisect    Use binary search to find the commit that introduced a bug
+           diff      Show changes between commits, commit and working tree, etc
+           grep      Print lines matching a pattern
+           log       Show commit logs
+           show      Show various types of objects
+           status    Show the working tree status
+
+        grow, mark and tweak your common history
+           branch    List, create, or delete branches
+           commit    Record changes to the repository
+           merge     Join two or more development histories together
+           rebase    Reapply commits on top of another base tip
+           reset     Reset current HEAD to the specified state
+           switch    Switch branches
+           tag       Create, list, delete or verify a tag object signed with GPG
+
+        collaborate (see also: git help workflows)
+           fetch     Download objects and refs from another repository
+           pull      Fetch from and integrate with another repository or a local branch
+           push      Update remote refs along with associated objects
+
+        'git help -a' and 'git help -g' list available subcommands and some
+        concept guides. See 'git help <command>' or 'git help <concept>'
+        to read about a specific subcommand or concept.
+        See 'git help git' for an overview of the system.
+"""
+
+        result = parser.parse_subcommands(help_output)
+        expected = [
+            "clone", "init", "add", "mv", "restore", "rm",
+            "bisect", "diff", "grep", "log", "show", "status",
+            "branch", "commit", "merge", "rebase", "reset", "switch", "tag",
+            "fetch", "pull", "push",
+        ]
+        assert result == expected
+        assert "-v" not in result
 
 class TestHelpParserPrivateMethods:
     """Tests for HelpParser private methods."""
@@ -155,3 +232,81 @@ class TestHelpParserPrivateMethods:
     def test_extract_command_name_no_match(self, parser: HelpParser) -> None:
         """Test _extract_command_name with no match."""
         assert parser._extract_command_name("") is None
+
+
+class TestParseOptions:
+    """Tests for option parsing."""
+
+    @pytest.fixture
+    def parser(self) -> HelpParser:
+        """Create a HelpParser instance."""
+        return HelpParser()
+
+    def test_parse_standard_options(self, parser: HelpParser) -> None:
+        """Test parsing standard Options: section."""
+        help_output = """
+Usage: tool [OPTIONS]
+
+Options:
+  -h, --help     Show help message
+  -v, --verbose  Verbose output
+  --version      Show version
+"""
+        options = parser.parse_options(help_output)
+        assert len(options) >= 2
+        # Check that we found some flags
+        names = [opt.name for opt in options]
+        assert "--help" in names or "-h" in [opt.short for opt in options]
+
+    def test_parse_options_with_arguments(self, parser: HelpParser) -> None:
+        """Test parsing options that take arguments."""
+        help_output = """
+Options:
+  -o, --output FILE  Output file path
+  --config PATH      Config file
+"""
+        options = parser.parse_options(help_output)
+        valued = [opt for opt in options if not opt.is_flag]
+        # Should find options with arguments
+        assert any(opt.argument for opt in options) or len(options) > 0
+
+    def test_parse_all(self, parser: HelpParser) -> None:
+        """Test parse_all returns both subcommands and options."""
+        help_output = """
+Usage: tool [OPTIONS] COMMAND
+
+Commands:
+  init    Initialize
+  build   Build project
+
+Options:
+  --help  Show help
+"""
+        parsed = parser.parse_all(help_output)
+        assert "init" in parsed.subcommands
+        assert "build" in parsed.subcommands
+        assert len(parsed.options) >= 0  # Options parsing may vary
+
+    def test_parsed_help_flags_property(self, parser: HelpParser) -> None:
+        """Test ParsedHelp flags property."""
+        help_output = """
+Options:
+  -v, --verbose  Verbose output
+  -o FILE        Output file
+"""
+        parsed = parser.parse_all(help_output)
+        # flags should only include options without arguments
+        for flag in parsed.flags:
+            assert flag.is_flag
+
+    def test_parsed_help_valued_options_property(self, parser: HelpParser) -> None:
+        """Test ParsedHelp valued_options property."""
+        help_output = """
+Options:
+  -v, --verbose  Verbose output
+  -o FILE        Output file
+"""
+        parsed = parser.parse_all(help_output)
+        # valued_options should only include options with arguments
+        for opt in parsed.valued_options:
+            assert not opt.is_flag

@@ -48,7 +48,7 @@ class TestCLI:
     def test_max_depth_option(self, runner: CliRunner, tmp_path) -> None:
         """Test --max-depth option."""
         output_file = tmp_path / "test-help.md"
-        result = runner.invoke(app, ["echo", "-o", str(output_file), "-d", "1"])
+        result = runner.invoke(app, ["echo", "-o", str(output_file), "-m", "1"])
         assert result.exit_code == 0
 
     def test_timeout_option(self, runner: CliRunner, tmp_path) -> None:
@@ -58,6 +58,21 @@ class TestCLI:
             app, ["echo", "-o", str(output_file), "-t", "10"]
         )
         assert result.exit_code == 0
+
+    def test_debug_option(self, runner: CliRunner) -> None:
+        """Test --debug option prints to stdout."""
+        result = runner.invoke(app, ["echo", "--debug"])
+        assert result.exit_code == 0
+        assert "Command: echo" in result.stdout
+        assert "Subcommands" in result.stdout
+        assert "Flags" in result.stdout
+        assert "Options" in result.stdout
+
+    def test_debug_short_option(self, runner: CliRunner) -> None:
+        """Test -d short option for debug."""
+        result = runner.invoke(app, ["echo", "-d"])
+        assert result.exit_code == 0
+        assert "Command: echo" in result.stdout
 
 
 class TestIntegration:
