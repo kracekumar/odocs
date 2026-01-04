@@ -234,6 +234,64 @@ class TestHelpParserPrivateMethods:
         assert parser._extract_command_name("") is None
 
 
+class TestSpecYamlExamples:
+    """Tests based on spec.yaml examples."""
+
+    @pytest.fixture
+    def parser(self) -> HelpParser:
+        """Create a HelpParser instance."""
+        return HelpParser()
+
+    def test_ty_style_subcommands(
+        self, parser: HelpParser, ty_style_help_output: str
+    ) -> None:
+        """Test parsing ty-style help (Commands section)."""
+        result = parser.parse_subcommands(ty_style_help_output)
+        assert result == ["check", "server", "version", "help"]
+
+    def test_ty_style_options(
+        self, parser: HelpParser, ty_style_help_output: str
+    ) -> None:
+        """Test parsing ty-style options."""
+        options = parser.parse_options(ty_style_help_output)
+        # Should find -h/--help and -V/--version
+        assert len(options) >= 2
+        longs = [opt.long for opt in options if opt.long]
+        assert "--help" in longs
+        assert "--version" in longs
+
+    def test_toad_style_subcommands(
+        self, parser: HelpParser, toad_style_help_output: str
+    ) -> None:
+        """Test parsing toad-style help (Options before Commands)."""
+        result = parser.parse_subcommands(toad_style_help_output)
+        assert result == ["about", "acp", "run", "serve", "settings"]
+
+    def test_toad_style_options(
+        self, parser: HelpParser, toad_style_help_output: str
+    ) -> None:
+        """Test parsing toad-style options (Options section before Commands)."""
+        options = parser.parse_options(toad_style_help_output)
+        # Should find --help option
+        longs = [opt.long for opt in options if opt.long]
+        assert "--help" in longs
+
+    def test_wc_style_no_subcommands(
+        self, parser: HelpParser, wc_style_help_output: str
+    ) -> None:
+        """Test parsing wc-style help (no subcommands)."""
+        result = parser.parse_subcommands(wc_style_help_output)
+        assert result == []
+
+    def test_wc_style_parse_all(
+        self, parser: HelpParser, wc_style_help_output: str
+    ) -> None:
+        """Test parse_all for wc-style (no commands, no standard options)."""
+        parsed = parser.parse_all(wc_style_help_output)
+        assert parsed.subcommands == []
+        # wc doesn't have standard options section
+
+
 class TestParseOptions:
     """Tests for option parsing."""
 

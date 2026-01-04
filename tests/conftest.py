@@ -147,27 +147,73 @@ Global options:
 
 @pytest.fixture
 def git_style_help_output() -> str:
-    """Git-style help output format."""
+    """Help output with indented command format (used by git and similar CLIs)."""
     return """
-usage: git [-v | --version] [-h | --help] [-C <path>] [-c <name>=<value>]
+usage: mycli [-v | --version] [-h | --help]
 
-These are common Git commands used in various situations:
+These are common commands used in various situations:
 
-start a working area (see also: git help tutorial)
+start a working area
    clone     Clone a repository into a new directory
-   init      Create an empty Git repository or reinitialize an existing one
+   init      Create an empty repository or reinitialize an existing one
 
-work on the current change (see also: git help everyday)
+work on the current change
    add       Add file contents to the index
    mv        Move or rename a file, a directory, or a symlink
    restore   Restore working tree files
    rm        Remove files from the working tree and from the index
 
-examine the history and state (see also: git help revisions)
+examine the history and state
    bisect    Use binary search to find the commit that introduced a bug
    diff      Show changes between commits
    grep      Print lines matching a pattern
    log       Show commit logs
    show      Show various types of objects
    status    Show the working tree status
+"""
+
+
+@pytest.fixture
+def ty_style_help_output() -> str:
+    """ty-style help output (Commands section, Options section)."""
+    return """An extremely fast Python type checker.
+
+Usage: ty <COMMAND>
+
+Commands:
+  check    Check a project for type errors
+  server   Start the language server
+  version  Display ty's version
+  help     Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help     Print help
+  -V, --version  Print version
+"""
+
+
+@pytest.fixture
+def toad_style_help_output() -> str:
+    """toad-style help output (Options before Commands)."""
+    return """Usage: toad [OPTIONS] PATH OR COMMAND [ARGS]...
+
+🐸 Toad — AI for your terminal.
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  about     Show about information.
+  acp       Run an ACP agent from a command.
+  run       Run an installed agent (same as `toad PATH`).
+  serve     Serve Toad as a web application.
+  settings  Settings information.
+"""
+
+
+@pytest.fixture
+def wc_style_help_output() -> str:
+    """wc-style help output (no subcommands, non-standard help)."""
+    return """wc: illegal option -- h
+usage: wc [-Lclmw] [file ...]
 """

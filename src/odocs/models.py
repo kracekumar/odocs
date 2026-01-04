@@ -26,7 +26,7 @@ class CommandHelp:
 
     def count_all(self) -> int:
         """Count total number of commands including all subcommands."""
-        count = 1
+        count = 1  # Count self
         for subcmd in self.subcommands:
             count += subcmd.count_all()
         return count
