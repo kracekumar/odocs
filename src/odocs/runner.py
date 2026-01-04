@@ -34,18 +34,36 @@ class CommandRunner:
         """
         self.timeout = timeout
 
-    def run_help(self, command_parts: list[str]) -> CommandResult:
-        """Run a command with --help flag.
+    def run_help(
+        self,
+        command_parts: list[str],
+        use_help_subcommand: bool = False,
+        root_command: str | None = None,
+    ) -> CommandResult:
+        """Run a command to get its help output.
 
         Args:
             command_parts: List of command parts (e.g., ["git", "commit"]).
+            use_help_subcommand: If True, use "<root> help <subcommand>" pattern
+                instead of "<command> --help".
+            root_command: The root command for help subcommand pattern.
+                Required if use_help_subcommand is True.
 
         Returns:
             CommandResult with output and return code.
         """
         try:
+            if use_help_subcommand and root_command:
+                # Use pattern: <root> help <subcommand> [<subsubcommand>...]
+                # e.g., "ty help check" instead of "ty check --help"
+                subcommand_parts = command_parts[1:]  # Skip root command
+                cmd_to_run = [root_command, "help", *subcommand_parts]
+            else:
+                # Use standard --help flag
+                cmd_to_run = [*command_parts, "--help"]
+
             result = subprocess.run(
-                [*command_parts, "--help"],
+                cmd_to_run,
                 capture_output=True,
                 text=True,
                 timeout=self.timeout,
@@ -61,6 +79,6 @@ class CommandRunner:
         except subprocess.TimeoutExpired:
             cmd = " ".join(command_parts)
             return CommandResult(
-                output=f"Error: Command '{cmd} --help' timed out.",
+                output=f"Error: Command '{cmd}' help timed out.",
                 return_code=1,
             )
