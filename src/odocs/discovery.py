@@ -95,13 +95,30 @@ class CommandDiscovery:
 
         # Detect if this command uses "help <subcommand>" pattern
         # by checking if "help" is listed as a subcommand
-        if is_root and "help" in subcommand_names:
+        has_help_subcommand = is_root and "help" in subcommand_names
+        if has_help_subcommand:
             use_help_subcommand = True
-            # Remove "help" from subcommands to avoid recursing into it
-            subcommand_names = [s for s in subcommand_names if s != "help"]
 
         for subcmd_name in subcommand_names:
             subcmd_parts = command_parts + [subcmd_name]
+
+            # For "help" subcommand: document it but don't recurse into it
+            if subcmd_name == "help" and has_help_subcommand:
+                # Get help output for the help command itself
+                help_result = self.runner.run_help(
+                    subcmd_parts,
+                    use_help_subcommand=False,  # Use standard --help for help cmd
+                    root_command=root_command,
+                )
+                if help_result.success:
+                    help_cmd = CommandHelp(
+                        name="help",
+                        full_command=subcmd_parts.copy(),
+                        help_output=help_result.output,
+                    )
+                    cmd_help.subcommands.append(help_cmd)
+                continue
+
             subcmd_help = self._discover_recursive(
                 subcmd_parts,
                 current_depth=current_depth + 1,

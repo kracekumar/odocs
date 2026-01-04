@@ -180,6 +180,12 @@ Options:
             })
             if parts == ["ty"]:
                 return CommandResult(output=ty_help, return_code=0)
+            # Handle "ty help" - the help subcommand itself
+            elif parts == ["ty", "help"]:
+                return CommandResult(
+                    output="Print help for ty commands",
+                    return_code=0,
+                )
             # When use_help_subcommand=True, simulate what runner does:
             # it transforms ["ty", "check"] to ["ty", "help", "check"]
             elif use_help_subcommand and root_command == "ty":
@@ -202,22 +208,29 @@ Options:
         result = discovery.discover("ty")
 
         assert result is not None
-        # Should have discovered subcommands (check, server, version)
-        # Note: "help" is excluded from recursion
-        assert len(result.subcommands) == 3
+        # Should have discovered subcommands (check, server, version, help)
+        assert len(result.subcommands) == 4
         subcommand_names = [s.name for s in result.subcommands]
         assert "check" in subcommand_names
         assert "server" in subcommand_names
         assert "version" in subcommand_names
-        assert "help" not in subcommand_names  # Should be excluded
+        assert "help" in subcommand_names  # Should be included but not recursed
 
-        # Verify that help subcommand pattern was used for subcommands
-        subcommand_calls = [
-            c for c in help_calls if c["parts"] != ["ty"]
+        # Verify that help subcommand pattern was used for non-help subcommands
+        non_help_calls = [
+            c for c in help_calls
+            if c["parts"] not in [["ty"], ["ty", "help"]]
         ]
-        for call in subcommand_calls:
+        for call in non_help_calls:
             assert call["use_help_subcommand"] is True
             assert call["root_command"] == "ty"
+
+        # Verify that "help" subcommand uses standard --help (not recursed)
+        help_call = next(
+            (c for c in help_calls if c["parts"] == ["ty", "help"]), None
+        )
+        assert help_call is not None
+        assert help_call["use_help_subcommand"] is False
 
 
 class TestDiscoverRecursiveEdgeCases:
